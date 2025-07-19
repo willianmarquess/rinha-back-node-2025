@@ -4,6 +4,7 @@ import path from 'path';
 import { HealthCheckMonitor } from './HealthCheckMonitor.js';
 import { PaymentProcessorChooser } from './PaymentProcessorChooser.js';
 import { Worker } from 'worker_threads';
+import { PaymentSummarizer } from './PaymentSummarizer.js';
 
 const REDIS_HOST = process.env.REDIS_HOST;
 const DEFAULT_URL = process.env.PAYMENT_PROCESSOR_URL_DEFAULT || 'http://localhost:8001';
@@ -44,6 +45,10 @@ const worker = new Worker(path.resolve('./src/worker.js'), {
         processorConfig: PAYMENT_PROCESSORS_CONFIG,
         redisConfig: { host: REDIS_HOST, port: 6379 },
     }
+});
+
+const paymentSummarizer = new PaymentSummarizer({
+    redisCacheProvider
 });
 
 const app = Fastify({
@@ -88,39 +93,9 @@ app.get('/payments-summary', {
             return res.status(400).send({ error: 'Invalid datetime format' });
         }
 
-        const [defaultValues, fallbackValues] = await Promise.all([
-            redisCacheProvider.zRangeByScore(
-                `transactions:log:DEFAULT`,
-                fromTimestamp,
-                toTimestamp
-            ),
-            redisCacheProvider.zRangeByScore(
-                `transactions:log:FALLBACK`,
-                fromTimestamp,
-                toTimestamp
-            )
-        ]);
+        const result = await paymentSummarizer.execute(fromTimestamp, toTimestamp);
 
-        let totalAmountDefault = 0;
-        for (const defaultValue of defaultValues) {
-            totalAmountDefault += JSON.parse(defaultValue).amount;
-        }
-
-        let totalAmountFallback = 0;
-        for (const fallbackValue of fallbackValues) {
-            totalAmountFallback += JSON.parse(fallbackValue).amount;
-        }
-
-        res.status(200).send({
-            default: {
-                totalRequests: defaultValues.length,
-                totalAmount: Number(totalAmountDefault.toFixed(1))
-            },
-            fallback: {
-                totalRequests: fallbackValues.length,
-                totalAmount: Number(totalAmountFallback.toFixed(1))
-            }
-        });
+        res.status(200).send(result);
     }
 })
 
