@@ -12,7 +12,8 @@ const queue = new Queue(10_000);
 
 const paymentSender = new PaymentSender({
     redisCacheProvider,
-    config: processorConfig
+    config: processorConfig,
+    queue
 });
 
 parentPort.on('message', async (payment) => {
