@@ -43,13 +43,7 @@ export class PaymentSender {
         return false;
     }
 
-    async execute(payment, retry = 0) {
-        //This should never happen
-        if (retry >= 20) {
-            console.log(`Discart payment: `, payment);
-            return;
-        }
-
+    async execute(payment) {
         const paymentProcessorName = await this.#getPaymentProcessor();
 
         switch (paymentProcessorName) {
