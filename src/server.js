@@ -52,7 +52,7 @@ const paymentSummarizer = new PaymentSummarizer({
 });
 
 const app = Fastify({
-    logger: false,
+    logger: true,
 });
 
 app.post('/payments', {
@@ -123,7 +123,7 @@ app.setErrorHandler((error, _req, res) => {
     return res.status(500);
 });
 
-app.listen({ port: 9999, host: '0.0.0.0' }, async (err) => {
+app.listen({ port: 3333, host: '0.0.0.0' }, async (err) => {
     if (err) {
         console.error(err);
         process.exit(1);
