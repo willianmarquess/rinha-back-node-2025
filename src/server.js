@@ -77,7 +77,6 @@ app.get('/payments-summary', {
     schema: {
         querystring: {
             type: 'object',
-            required: ['from', 'to'],
             properties: {
                 from: { type: 'string', format: 'date-time' },
                 to: { type: 'string', format: 'date-time' },
@@ -85,7 +84,16 @@ app.get('/payments-summary', {
         },
     },
     async handler(req, res) {
-        const { from, to } = req.query;
+        let { from, to } = req.query;
+
+        if(!from) {
+            from = new Date().toISOString();
+        }
+
+        if(!to) {
+            to = new Date().toISOString();
+        }
+
         const fromTimestamp = new Date(from).getTime();
         const toTimestamp = new Date(to).getTime();
 
