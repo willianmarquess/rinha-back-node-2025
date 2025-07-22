@@ -1,43 +1,34 @@
 services:
-  service1:
-    image: willian666/rinha-back-node-2025:latest
+  service1: &service
+    image: willian666/rinha-back-node-2025:v0.5
+    environment:
+      - PAYMENT_PROCESSOR_URL_DEFAULT=http://payment-processor-default:8080
+      - PAYMENT_PROCESSOR_URL_FALLBACK=http://payment-processor-fallback:8080
+      - REDIS_HOST=redis
+      - NODE_ENV=production
+    networks:
+      - backend
+      - payment-processor
+    depends_on:
+      - redis
+    deploy:
+      resources:
+        limits:
+          cpus: "0.65"
+          memory: "120MB"
+
+  service2:
+    <<: *service
+    build:
+      context: .
     environment:
       - PAYMENT_PROCESSOR_URL_DEFAULT=http://payment-processor-default:8080
       - PAYMENT_PROCESSOR_URL_FALLBACK=http://payment-processor-fallback:8080
       - REDIS_HOST=redis
       - HEALTH_CHECK_ENABLED=1
-      - NODE_ENV=production
-    networks:
-      - backend
-      - payment-processor
-    depends_on:
-      - redis
-    deploy:
-      resources:
-        limits:
-          cpus: "0.55"
-          memory: "105MB"
-
-  service2:
-    image: willian666/rinha-back-node-2025:latest
-    environment:
-      - PAYMENT_PROCESSOR_URL_DEFAULT=http://payment-processor-default:8080
-      - PAYMENT_PROCESSOR_URL_FALLBACK=http://payment-processor-fallback:8080
-      - REDIS_HOST=redis
-      - NODE_ENV=production
-    networks:
-      - backend
-      - payment-processor
-    depends_on:
-      - redis
-    deploy:
-      resources:
-        limits:
-          cpus: "0.55"
-          memory: "105MB"
 
   redis:
-    image: redis:8.2-rc1-alpine
+    image: redis:latest
     restart: unless-stopped
     container_name: redis
     ports:
@@ -45,8 +36,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.20"
-          memory: "80MB"
+          cpus: "0.10"
+          memory: "60MB"
     networks:
       - backend
   
@@ -64,8 +55,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.20"
-          memory: "60MB"
+          cpus: "0.10"
+          memory: "50MB"
 
 networks:
   backend:
