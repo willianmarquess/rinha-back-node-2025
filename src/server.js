@@ -52,7 +52,7 @@ const paymentSummarizer = new PaymentSummarizer({
 });
 
 const app = Fastify({
-    logger: true,
+    logger: false,
 });
 
 app.post('/payments', {
@@ -69,7 +69,8 @@ app.post('/payments', {
     async handler(req, res) {
         const { correlationId, amount } = req.body;
         worker.postMessage({ correlationId, amount, requestedAt: new Date().toISOString() });
-        return res.status(202).send();
+        res.status(202).send();
+        
     }
 });
 
@@ -86,11 +87,11 @@ app.get('/payments-summary', {
     async handler(req, res) {
         let { from, to } = req.query;
 
-        if(!from) {
+        if (!from) {
             from = new Date().toISOString();
         }
 
-        if(!to) {
+        if (!to) {
             to = new Date().toISOString();
         }
 
@@ -123,9 +124,10 @@ app.setErrorHandler((error, _req, res) => {
     return res.status(500);
 });
 
-app.listen({ port: 3333, host: '0.0.0.0' }, async (err) => {
+app.listen({ port: 3333, host: '0.0.0.0' }, (err) => {
     if (err) {
         console.error(err);
         process.exit(1);
     }
+    console.log(`App rodando 🔥`);
 });

@@ -21,17 +21,13 @@ parentPort.on('message', async (payment) => {
 });
 
 const executions = [];
-let lastFlush = performance.now();
-const FLUSH_INTERVAL_MS = 100;
 
 for await (const payment of queue) {
     executions.push(paymentSender.execute(payment));
-    const now = performance.now();
-    const shouldFlush = executions.length >= 20 || now - lastFlush > FLUSH_INTERVAL_MS;
+    const shouldFlush = executions.length >= 20;
 
     if (shouldFlush) {
         await Promise.all(executions);
         executions.length = 0;
-        lastFlush = now;
     }
 }
